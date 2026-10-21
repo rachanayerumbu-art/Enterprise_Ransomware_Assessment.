@@ -304,8 +304,5 @@ A: All data is stored in a local SQLite database file at `database/ransomware_ri
 **Q: How do you run the tests?**  
 A: Activate the virtual environment and run `python -m pytest tests/ -v`.
 
----
 
-## Licence
 
-This project is created for educational purposes. It is provided as-is with no warranty. Do not use this tool as a substitute for professional cybersecurity advice or compliance auditing.
