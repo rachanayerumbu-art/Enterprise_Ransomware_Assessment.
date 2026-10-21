@@ -1,4 +1,4 @@
-# Enterprise Ransomware Risk Assessment System (ERRAS)
+# Enterprise Ransomware Assessment 
 
 > **Version:** 1.0.0  
 > **Framework:** NIST Cybersecurity Framework (CSF) 2.0  
