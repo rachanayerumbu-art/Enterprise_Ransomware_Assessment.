@@ -6,18 +6,6 @@
 
 ---
 
-## ⚠️ Important Disclaimer
-
-This project is a **defensive cybersecurity tool** built for **educational and risk-planning purposes only**.
-
-- It does **not** create, deploy, simulate, or interact with ransomware in any way.
-- It does **not** detect active ransomware infections in real time.
-- It does **not** guarantee compliance with the NIST Cybersecurity Framework or any regulation.
-- All pre-loaded sample records are **fictional illustrative assessments** and do not represent findings from any real organisation.
-- Always consult qualified cybersecurity professionals for actual security assessments.
-
----
-
 ## Project Overview
 
 The **Enterprise Ransomware Risk Assessment System (ERRAS)** is a web application that helps security administrators:
