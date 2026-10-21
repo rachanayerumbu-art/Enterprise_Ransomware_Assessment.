@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Risk Register – {{ APP_NAME }}{% endblock %}
+{% block page_title %}Risk Register{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">Risk Register</h1>
+    <p class="page-sub">All identified ransomware risks — search, filter, and manage entries</p>
+</div>
+
+<!-- ===== Filter / Search Bar ===== -->
+<div class="filter-bar">
+    <form method="get" action="{{ url_for('risk_register') }}" class="filter-form">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by ID, title, description…" class="form-input filter-search">
+
+        <select name="level" class="form-select">
+            <option value="">All Levels</option>
+            {% for lvl in ['Critical','High','Medium','Low'] %}
+            <option value="{{ lvl }}" {% if filter_level == lvl %}selected{% endif %}>{{ lvl }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            {% for st in ['Open','In Progress','Mitigated','Accepted','Closed'] %}
+            <option value="{{ st }}" {% if filter_status == st %}selected{% endif %}>{{ st }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="nist_function" class="form-select">
+            <option value="">All NIST Functions</option>
+            {% for fn in nist_func_list %}
+            <option value="{{ fn.name }}" {% if filter_nist == fn.name %}selected{% endif %}>{{ fn.name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{{ url_for('risk_register') }}" class="btn btn-outline">Clear</a>
+    </form>
+    <a href="{{ url_for('add_risk') }}" class="btn btn-primary">➕ Add Risk</a>
+</div>
+
+<!-- ===== Risk Table ===== -->
+<div class="section-card">
+    <div class="section-header">
+        <span class="result-count">{{ risks|length }} risk(s) found</span>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-outline btn-sm">⬇ Export CSV</a>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Risk ID</th>
+                    <th>Title</th>
+                    <th>Asset</th>
+                    <th>L</th>
+                    <th>I</th>
+                    <th>Score</th>
+                    <th>Level</th>
+                    <th>NIST Function</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th>Sample</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in risks %}
+                <tr>
+                    <td><code>{{ r['risk_id'] }}</code></td>
+                    <td class="td-title">{{ r['title'] }}</td>
+                    <td>{{ r['affected_asset'] }}</td>
+                    <td class="text-center">{{ r['likelihood'] }}</td>
+                    <td class="text-center">{{ r['impact'] }}</td>
+                    <td class="text-center"><strong>{{ r['risk_score'] }}</strong></td>
+                    <td>
+                        <span class="badge {{ get_risk_badge_class(r['risk_level']) }}">
+                            {{ r['risk_level'] }}
+                        </span>
+                    </td>
+                    <td>{{ r['nist_function'] }}</td>
+                    <td>{{ r['risk_owner'] }}</td>
+                    <td>
+                        <span class="badge badge-status-{{ r['status']|lower|replace(' ','-') }}">
+                            {{ r['status'] }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        {% if r['is_sample'] %}<span class="badge badge-sample">Sample</span>{% endif %}
+                    </td>
+                    <td class="td-actions">
+                        <a href="{{ url_for('risk_detail', risk_id=r['risk_id']) }}" class="btn btn-xs btn-primary" title="View">👁</a>
+                        <a href="{{ url_for('edit_risk', risk_id=r['risk_id']) }}" class="btn btn-xs btn-secondary" title="Edit">✏️</a>
+                        <form method="post" action="{{ url_for('delete_risk', risk_id=r['risk_id']) }}" style="display:inline"
+                              onsubmit="return confirm('Delete {{ r['risk_id'] }}? This cannot be undone.')">
+                            <button type="submit" class="btn btn-xs btn-danger" title="Delete">🗑</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="12" class="text-center muted">No risks found matching your criteria.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="legend-row">
+    <span class="badge badge-critical">Critical 17–25</span>
+    <span class="badge badge-high">High 10–16</span>
+    <span class="badge badge-medium">Medium 5–9</span>
+    <span class="badge badge-low">Low 1–4</span>
+    <span class="muted">&nbsp;L = Likelihood &nbsp;|&nbsp; I = Impact &nbsp;|&nbsp; Score = L × I</span>
+</div>
+{% endblock %}

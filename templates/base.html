@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<!-- ===== Sidebar ===== -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">🛡️</div>
+        <div class="brand-text">
+            <span class="brand-title">ERRAS</span>
+            <span class="brand-sub">Risk Assessment</span>
+        </div>
+    </div>
+
+    <ul class="sidebar-nav">
+        <li class="nav-item">
+            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('risk_register') }}" class="nav-link {% if request.endpoint == 'risk_register' %}active{% endif %}">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Risk Register</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('add_risk') }}" class="nav-link {% if request.endpoint == 'add_risk' %}active{% endif %}">
+                <span class="nav-icon">➕</span>
+                <span class="nav-label">Add Risk</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('nist_mapping') }}" class="nav-link {% if request.endpoint == 'nist_mapping' %}active{% endif %}">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">NIST Mapping</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">
+                <span class="nav-icon">📄</span>
+                <span class="nav-label">Reports</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">
+                <span class="nav-icon">ℹ️</span>
+                <span class="nav-label">About</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <span>NIST CSF 2.0</span>
+    </div>
+</nav>
+
+<!-- ===== Main Content ===== -->
+<div class="main-wrapper">
+    <!-- Top Bar -->
+    <header class="topbar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+        <div class="topbar-title">{% block page_title %}{{ APP_NAME }}{% endblock %}</div>
+        <div class="topbar-right">
+            <span class="topbar-badge">v{{ APP_VERSION }}</span>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                <span>{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Content -->
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="page-footer">
+        &copy; 2025 Enterprise Ransomware Risk Assessment System &mdash;
+        For educational and planning purposes only. Not a real-time threat detection tool.
+    </footer>
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+    document.querySelector('.main-wrapper').classList.toggle('expanded');
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

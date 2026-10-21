@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – {{ APP_NAME }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">Ransomware Risk Dashboard</h1>
+    <p class="page-sub">Organisation-wide ransomware risk posture at a glance</p>
+    <div class="disclaimer-banner">
+        ⚠️ <strong>Sample Assessment Notice:</strong> Pre-loaded records are illustrative fictional examples only.
+        They do not represent findings from any real organisation.
+    </div>
+</div>
+
+<!-- ===== Stat Cards ===== -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.total }}</span>
+            <span class="stat-label">Total Risks</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--critical">
+        <div class="stat-icon">🔴</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.critical }}</span>
+            <span class="stat-label">Critical Risks</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--high">
+        <div class="stat-icon">🟠</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.high }}</span>
+            <span class="stat-label">High Risks</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--medium">
+        <div class="stat-icon">🟡</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.medium }}</span>
+            <span class="stat-label">Medium Risks</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--low">
+        <div class="stat-icon">🟢</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.low }}</span>
+            <span class="stat-label">Low Risks</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--open">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.open }}</span>
+            <span class="stat-label">Awaiting Mitigation</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card--mitigated">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.mitigated }}</span>
+            <span class="stat-label">Mitigated</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-info">
+            <span class="stat-number">{{ stats.in_progress }}</span>
+            <span class="stat-label">In Progress</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Charts ===== -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3 class="chart-title">Risk Level Distribution</h3>
+        <div class="chart-wrap">
+            <canvas id="levelChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card">
+        <h3 class="chart-title">Risks by NIST CSF Function</h3>
+        <div class="chart-wrap">
+            <canvas id="nistChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card">
+        <h3 class="chart-title">Mitigation Status</h3>
+        <div class="chart-wrap">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Top Risks Table ===== -->
+<div class="section-card">
+    <div class="section-header">
+        <h2 class="section-title">Top 5 Highest-Scored Risks</h2>
+        <a href="{{ url_for('risk_register') }}" class="btn btn-outline">View All</a>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Risk ID</th>
+                    <th>Title</th>
+                    <th>Likelihood</th>
+                    <th>Impact</th>
+                    <th>Score</th>
+                    <th>Level</th>
+                    <th>NIST Function</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in recent_risks %}
+                <tr>
+                    <td><code>{{ r['risk_id'] }}</code></td>
+                    <td>{{ r['title'] }}</td>
+                    <td class="text-center">{{ r['likelihood'] }}</td>
+                    <td class="text-center">{{ r['impact'] }}</td>
+                    <td class="text-center"><strong>{{ r['risk_score'] }}</strong></td>
+                    <td>
+                        <span class="badge {{ get_risk_badge_class(r['risk_level']) }}">
+                            {{ r['risk_level'] }}
+                        </span>
+                    </td>
+                    <td>{{ r['nist_function'] }}</td>
+                    <td>
+                        <span class="badge badge-status">{{ r['status'] }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('risk_detail', risk_id=r['risk_id']) }}" class="btn btn-xs btn-primary">View</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== Quick Actions ===== -->
+<div class="quick-actions">
+    <a href="{{ url_for('add_risk') }}" class="btn btn-primary btn-lg">➕ Add New Risk</a>
+    <a href="{{ url_for('risk_register') }}" class="btn btn-secondary btn-lg">📋 Risk Register</a>
+    <a href="{{ url_for('nist_mapping') }}" class="btn btn-secondary btn-lg">🗺️ NIST Mapping</a>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary btn-lg">📄 Reports</a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ---- Data from Flask ----
+const levelCounts = {{ level_counts | tojson }};
+const funcCounts  = {{ func_counts  | tojson }};
+const statusData  = {
+    Open:        {{ stats.open }},
+    "In Progress": {{ stats.in_progress }},
+    Mitigated:   {{ stats.mitigated }},
+    Accepted:    {{ stats.accepted }},
+    Closed:      {{ stats.closed }}
+};
+
+// ---- Risk Level Doughnut ----
+new Chart(document.getElementById('levelChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(levelCounts),
+        datasets: [{
+            data: Object.values(levelCounts),
+            backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e'],
+            borderWidth: 2,
+            borderColor: '#1e2a3a'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } }
+        }
+    }
+});
+
+// ---- NIST Function Bar ----
+const nistColors = { Govern:'#7c3aed', Identify:'#2563eb', Protect:'#059669',
+                     Detect:'#d97706', Respond:'#dc2626', Recover:'#0891b2' };
+new Chart(document.getElementById('nistChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(funcCounts),
+        datasets: [{
+            label: 'Risks',
+            data: Object.values(funcCounts),
+            backgroundColor: Object.keys(funcCounts).map(k => nistColors[k] || '#3b82f6'),
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { color:'#94a3b8', stepSize:1 }, grid: { color:'#2d3f50' } },
+            x: { ticks: { color:'#94a3b8' }, grid: { display: false } }
+        }
+    }
+});
+
+// ---- Status Pie ----
+new Chart(document.getElementById('statusChart'), {
+    type: 'pie',
+    data: {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: ['#ef4444','#f97316','#22c55e','#3b82f6','#6b7280'],
+            borderWidth: 2,
+            borderColor: '#1e2a3a'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } }
+        }
+    }
+});
+</script>
+{% endblock %}

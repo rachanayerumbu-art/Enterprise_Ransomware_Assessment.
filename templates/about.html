@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}About – {{ APP_NAME }}{% endblock %}
+{% block page_title %}About{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">About This System</h1>
+    <p class="page-sub">Enterprise Ransomware Risk Assessment System — v{{ APP_VERSION }}</p>
+</div>
+
+<div class="about-grid">
+
+    <div class="about-card">
+        <h2 class="about-h2">🎯 Project Objective</h2>
+        <p>
+            This web application helps security administrators identify, assess, score, and track
+            ransomware-related risks using a structured risk management process aligned to the
+            <strong>NIST Cybersecurity Framework (CSF) 2.0</strong>.
+        </p>
+        <p>
+            It is a <strong>defensive cybersecurity tool</strong>. It does not create, deploy, or
+            simulate ransomware. It does not encrypt files or interact with real systems outside
+            its own SQLite database.
+        </p>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">⚠️ Important Disclaimer</h2>
+        <ul class="about-list">
+            <li>This tool is for <strong>educational and planning purposes only</strong>.</li>
+            <li>It does <strong>not</strong> detect active ransomware infections in real time.</li>
+            <li>It does <strong>not</strong> guarantee organisational compliance with NIST CSF or any regulation.</li>
+            <li>Pre-loaded sample records are <strong>fictional illustrative assessments</strong> — not findings from a real organisation.</li>
+            <li>Always consult qualified cybersecurity professionals for actual security assessments.</li>
+        </ul>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">📐 Risk Scoring Methodology</h2>
+        <p>Risk scores are calculated using a standard qualitative matrix:</p>
+        <code class="about-formula">Risk Score = Likelihood (1–5) × Impact (1–5)</code>
+        <table class="about-table">
+            <thead><tr><th>Score Range</th><th>Risk Level</th><th>Colour</th></tr></thead>
+            <tbody>
+                <tr><td>1 – 4</td><td><span class="badge badge-low">Low</span></td><td>Green</td></tr>
+                <tr><td>5 – 9</td><td><span class="badge badge-medium">Medium</span></td><td>Yellow</td></tr>
+                <tr><td>10 – 16</td><td><span class="badge badge-high">High</span></td><td>Orange</td></tr>
+                <tr><td>17 – 25</td><td><span class="badge badge-critical">Critical</span></td><td>Red</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">🗺️ NIST CSF 2.0 Framework</h2>
+        <p>The NIST Cybersecurity Framework 2.0 organises cybersecurity activities into six core functions:</p>
+        <div class="nist-about-grid">
+            <div class="nist-about-item nist-fn-govern"><strong>GV</strong> Govern</div>
+            <div class="nist-about-item nist-fn-identify"><strong>ID</strong> Identify</div>
+            <div class="nist-about-item nist-fn-protect"><strong>PR</strong> Protect</div>
+            <div class="nist-about-item nist-fn-detect"><strong>DE</strong> Detect</div>
+            <div class="nist-about-item nist-fn-respond"><strong>RS</strong> Respond</div>
+            <div class="nist-about-item nist-fn-recover"><strong>RC</strong> Recover</div>
+        </div>
+        <p>
+            Each risk is mapped to the most relevant function and category.
+            Refer to <a href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener">nist.gov/cyberframework</a>
+            for the authoritative reference.
+        </p>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">🛠️ Technology Stack</h2>
+        <ul class="about-list">
+            <li><strong>Backend:</strong> Python 3.x, Flask</li>
+            <li><strong>Database:</strong> SQLite 3</li>
+            <li><strong>Frontend:</strong> HTML5, CSS3, Vanilla JavaScript</li>
+            <li><strong>Charts:</strong> Chart.js 4</li>
+            <li><strong>Framework:</strong> NIST Cybersecurity Framework 2.0</li>
+        </ul>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">🚀 Key Features</h2>
+        <ul class="about-list">
+            <li>Interactive dashboard with live risk statistics and charts</li>
+            <li>Risk register with search, filter, and full CRUD operations</li>
+            <li>Automatic risk score calculation (Likelihood × Impact)</li>
+            <li>NIST CSF 2.0 mapping for every risk record</li>
+            <li>Mitigation tracking with status updates</li>
+            <li>CSV export and printable reports</li>
+            <li>12 pre-loaded illustrative ransomware risk scenarios</li>
+        </ul>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">📁 Project Structure</h2>
+        <pre class="about-pre">enterprise-ransomware-assessment/
+├── app.py               ← Flask application entry point
+├── config.py            ← Configuration settings
+├── requirements.txt     ← Python dependencies
+├── README.md            ← Documentation
+├── database/
+│   ├── db.py            ← DB helpers &amp; init
+│   └── schema.sql       ← SQLite schema
+├── modules/
+│   ├── risk_engine.py   ← Scoring &amp; validation
+│   ├── nist_mapping.py  ← NIST CSF 2.0 data
+│   ├── report_generator.py ← CSV &amp; summary
+│   └── sample_data.py   ← Pre-loaded risks
+├── templates/           ← Jinja2 HTML templates
+├── static/
+│   ├── css/style.css    ← Application stylesheet
+│   └── js/              ← JavaScript files
+└── tests/               ← Unit &amp; integration tests</pre>
+    </div>
+
+    <div class="about-card">
+        <h2 class="about-h2">📖 How to Run (Windows)</h2>
+        <pre class="about-pre">cd enterprise-ransomware-assessment
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python app.py</pre>
+        <p>Then open <strong>http://127.0.0.1:5000</strong> in your browser.</p>
+    </div>
+
+</div>
+{% endblock %}

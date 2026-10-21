@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Reports – {{ APP_NAME }}{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">Risk Assessment Report</h1>
+    <p class="page-sub">Generated {{ summary.generated_at }} — based on live database records</p>
+    <div class="report-actions">
+        <a href="{{ url_for('export_csv') }}" class="btn btn-primary">⬇ Export CSV</a>
+        <button onclick="window.print()" class="btn btn-secondary">🖨️ Print Report</button>
+    </div>
+</div>
+
+<!-- ===== Executive Summary ===== -->
+<div class="report-section">
+    <h2 class="report-h2">1. Executive Summary</h2>
+    <div class="summary-cards">
+        <div class="summary-card"><span class="sum-num">{{ summary.total }}</span><span class="sum-label">Total Risks</span></div>
+        <div class="summary-card sum-critical"><span class="sum-num">{{ summary.critical }}</span><span class="sum-label">Critical</span></div>
+        <div class="summary-card sum-high"><span class="sum-num">{{ summary.high }}</span><span class="sum-label">High</span></div>
+        <div class="summary-card sum-medium"><span class="sum-num">{{ summary.medium }}</span><span class="sum-label">Medium</span></div>
+        <div class="summary-card sum-low"><span class="sum-num">{{ summary.low }}</span><span class="sum-label">Low</span></div>
+    </div>
+
+    <table class="report-table">
+        <thead><tr><th>Status</th><th>Count</th><th>% of Total</th></tr></thead>
+        <tbody>
+        {% set statuses = [('Open', summary.open), ('In Progress', summary.in_progress),
+                           ('Mitigated', summary.mitigated), ('Accepted', summary.accepted),
+                           ('Closed', summary.closed)] %}
+        {% for label, count in statuses %}
+        <tr>
+            <td>{{ label }}</td>
+            <td>{{ count }}</td>
+            <td>{% if summary.total > 0 %}{{ "%.1f"|format(count / summary.total * 100) }}%{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ===== Critical & High Risks ===== -->
+<div class="report-section">
+    <h2 class="report-h2">2. Critical and High Risks Requiring Immediate Attention</h2>
+    {% set urgent = risks | selectattr('risk_level', 'in', ['Critical','High']) | list %}
+    {% if urgent %}
+    <table class="report-table">
+        <thead>
+            <tr><th>Risk ID</th><th>Title</th><th>Score</th><th>Level</th><th>Owner</th><th>Status</th><th>Target Date</th></tr>
+        </thead>
+        <tbody>
+        {% for r in urgent %}
+        <tr>
+            <td><code>{{ r['risk_id'] }}</code></td>
+            <td>{{ r['title'] }}</td>
+            <td class="text-center"><strong>{{ r['risk_score'] }}</strong></td>
+            <td><span class="badge {{ get_risk_badge_class(r['risk_level']) }}">{{ r['risk_level'] }}</span></td>
+            <td>{{ r['risk_owner'] }}</td>
+            <td><span class="badge badge-status-{{ r['status']|lower|replace(' ','-') }}">{{ r['status'] }}</span></td>
+            <td>{{ r['target_date'] or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No critical or high risks currently in the register.</p>
+    {% endif %}
+</div>
+
+<!-- ===== Risk Distribution ===== -->
+<div class="report-section">
+    <h2 class="report-h2">3. Risk Distribution</h2>
+    <div class="report-chart-row">
+        <div class="report-chart-wrap">
+            <canvas id="reportLevelChart" height="220"></canvas>
+        </div>
+        <div class="report-chart-wrap">
+            <canvas id="reportNistChart" height="220"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NIST CSF Mapping Summary ===== -->
+<div class="report-section">
+    <h2 class="report-h2">4. NIST CSF 2.0 Mapping Summary</h2>
+    <table class="report-table">
+        <thead><tr><th>NIST Function</th><th>Risk Count</th></tr></thead>
+        <tbody>
+        {% for func, count in summary.by_nist_function.items() %}
+        <tr>
+            <td><span class="nist-function-badge nist-{{ func|lower }}">{{ func }}</span></td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ===== Full Risk Register ===== -->
+<div class="report-section">
+    <h2 class="report-h2">5. Full Risk Register</h2>
+    <div class="table-wrapper">
+        <table class="report-table data-table-sm">
+            <thead>
+                <tr>
+                    <th>Risk ID</th><th>Title</th><th>L</th><th>I</th>
+                    <th>Score</th><th>Level</th><th>NIST Cat.</th>
+                    <th>Owner</th><th>Status</th><th>Target Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in risks %}
+            <tr>
+                <td><code>{{ r['risk_id'] }}</code></td>
+                <td>{{ r['title'] }}</td>
+                <td class="text-center">{{ r['likelihood'] }}</td>
+                <td class="text-center">{{ r['impact'] }}</td>
+                <td class="text-center"><strong>{{ r['risk_score'] }}</strong></td>
+                <td><span class="badge {{ get_risk_badge_class(r['risk_level']) }}">{{ r['risk_level'] }}</span></td>
+                <td><code>{{ r['nist_category_id'] }}</code></td>
+                <td>{{ r['risk_owner'] }}</td>
+                <td><span class="badge badge-status-{{ r['status']|lower|replace(' ','-') }}">{{ r['status'] }}</span></td>
+                <td>{{ r['target_date'] or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="10" class="text-center muted">No risks in the register.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="report-footer-note">
+    <strong>Report Disclaimer:</strong> This report is generated from the Enterprise Ransomware Risk Assessment System database
+    for planning and educational purposes only. It does not detect active ransomware infections, guarantee organisational
+    compliance with any standard, or replace professional cybersecurity advice.
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const levelData = {
+    Critical: {{ summary.critical }},
+    High:     {{ summary.high }},
+    Medium:   {{ summary.medium }},
+    Low:      {{ summary.low }}
+};
+const nistData = {{ summary.by_nist_function | tojson }};
+
+new Chart(document.getElementById('reportLevelChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(levelData),
+        datasets: [{ data: Object.values(levelData),
+            backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e'],
+            borderWidth:2, borderColor:'#f7f8fa' }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' },
+        title:{ display:true, text:'Risk Level Distribution' } } }
+});
+
+const nistColors = { Govern:'#7c3aed', Identify:'#2563eb', Protect:'#059669',
+                     Detect:'#d97706', Respond:'#dc2626', Recover:'#0891b2' };
+new Chart(document.getElementById('reportNistChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(nistData),
+        datasets: [{ label:'Risks', data: Object.values(nistData),
+            backgroundColor: Object.keys(nistData).map(k=>nistColors[k]||'#3b82f6'),
+            borderRadius:4 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ display:false },
+        title:{ display:true, text:'Risks by NIST CSF Function' } },
+        scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
+});
+</script>
+{% endblock %}

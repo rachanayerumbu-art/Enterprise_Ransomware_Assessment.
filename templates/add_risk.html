@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Add Risk – {{ APP_NAME }}{% endblock %}
+{% block page_title %}Add New Risk{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">Add New Risk</h1>
+    <p class="page-sub">Enter details for a new ransomware-related risk. All fields marked * are required.</p>
+</div>
+
+<div class="form-card">
+<form method="post" action="{{ url_for('add_risk') }}" id="riskForm" novalidate>
+
+    <!-- ── Risk Identity ── -->
+    <div class="form-section">
+        <h3 class="form-section-title">Risk Identity</h3>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Risk Title <span class="req">*</span></label>
+                <input type="text" name="title" class="form-input" value="{{ form.get('title','') }}"
+                       placeholder="e.g. Phishing Emails Leading to Credential Theft" required maxlength="200">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Affected Asset <span class="req">*</span></label>
+                <input type="text" name="affected_asset" class="form-input" value="{{ form.get('affected_asset','') }}"
+                       placeholder="e.g. Corporate Email System, Workstations" required maxlength="200">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Risk Description <span class="req">*</span></label>
+            <textarea name="description" class="form-input form-textarea" rows="4" required
+                      placeholder="Describe the risk scenario, how it occurs and the potential consequence.">{{ form.get('description','') }}</textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Threat Source <span class="req">*</span></label>
+            <input type="text" name="threat_source" class="form-input" value="{{ form.get('threat_source','') }}"
+                   placeholder="e.g. External Threat Actor, Insider Threat" required maxlength="200">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Existing Security Controls</label>
+            <input type="text" name="existing_controls" class="form-input" value="{{ form.get('existing_controls','') }}"
+                   placeholder="Controls already in place (leave blank if none)" maxlength="300">
+        </div>
+    </div>
+
+    <!-- ── Risk Scoring ── -->
+    <div class="form-section">
+        <h3 class="form-section-title">Risk Scoring (Likelihood × Impact)</h3>
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label class="form-label">Likelihood <span class="req">*</span></label>
+                <select name="likelihood" class="form-select" id="likelihoodSel" required onchange="calcScore()">
+                    <option value="">Select 1–5</option>
+                    {% for i in range(1,6) %}
+                    <option value="{{ i }}" {% if form.get('likelihood','')|string == i|string %}selected{% endif %}>
+                        {{ i }} – {{ ['','Rare','Unlikely','Possible','Likely','Almost Certain'][i] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small class="form-hint">1 = Rare &nbsp;→&nbsp; 5 = Almost Certain</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Impact <span class="req">*</span></label>
+                <select name="impact" class="form-select" id="impactSel" required onchange="calcScore()">
+                    <option value="">Select 1–5</option>
+                    {% for i in range(1,6) %}
+                    <option value="{{ i }}" {% if form.get('impact','')|string == i|string %}selected{% endif %}>
+                        {{ i }} – {{ ['','Negligible','Minor','Moderate','Major','Catastrophic'][i] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small class="form-hint">1 = Negligible &nbsp;→&nbsp; 5 = Catastrophic</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Calculated Risk Score</label>
+                <div class="score-display" id="scoreDisplay">–</div>
+                <div class="level-display" id="levelDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── NIST CSF 2.0 Mapping ── -->
+    <div class="form-section">
+        <h3 class="form-section-title">NIST CSF 2.0 Mapping</h3>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">NIST Function <span class="req">*</span></label>
+                <select name="nist_function" class="form-select" id="nistFunctionSel" required onchange="filterCategories()">
+                    <option value="">Select Function</option>
+                    {% for fn in nist_func_list %}
+                    <option value="{{ fn.name }}" {% if form.get('nist_function','') == fn.name %}selected{% endif %}>
+                        {{ fn.code }} – {{ fn.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">NIST Category <span class="req">*</span></label>
+                <select name="nist_category_id" class="form-select" id="nistCatSel" required onchange="fillCategoryName()">
+                    <option value="">Select Category</option>
+                    {% for cat in all_categories %}
+                    <option value="{{ cat.id }}"
+                            data-name="{{ cat.name }}"
+                            data-function="{{ cat['function'] }}"
+                            {% if form.get('nist_category_id','') == cat.id %}selected{% endif %}>
+                        {{ cat.id }} – {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <input type="hidden" name="nist_category" id="nistCategoryHidden" value="{{ form.get('nist_category','') }}">
+        <div class="form-group">
+            <label class="form-label">NIST Mapping Explanation</label>
+            <textarea name="nist_explanation" class="form-input form-textarea" rows="3"
+                      placeholder="Briefly explain why this NIST CSF category applies to this risk.">{{ form.get('nist_explanation','') }}</textarea>
+        </div>
+    </div>
+
+    <!-- ── Mitigation & Ownership ── -->
+    <div class="form-section">
+        <h3 class="form-section-title">Mitigation &amp; Ownership</h3>
+        <div class="form-group">
+            <label class="form-label">Recommended Mitigation <span class="req">*</span></label>
+            <textarea name="recommended_mitigation" class="form-input form-textarea" rows="4" required
+                      placeholder="Describe the recommended security controls and actions to reduce this risk.">{{ form.get('recommended_mitigation','') }}</textarea>
+        </div>
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label class="form-label">Risk Owner <span class="req">*</span></label>
+                <input type="text" name="risk_owner" class="form-input" value="{{ form.get('risk_owner','') }}"
+                       placeholder="e.g. IT Security Manager" required maxlength="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status <span class="req">*</span></label>
+                <select name="status" class="form-select" required>
+                    {% for st in ['Open','In Progress','Mitigated','Accepted','Closed'] %}
+                    <option value="{{ st }}" {% if form.get('status','Open') == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Completion Date</label>
+                <input type="date" name="target_date" class="form-input" value="{{ form.get('target_date','') }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">💾 Save Risk</button>
+        <a href="{{ url_for('risk_register') }}" class="btn btn-outline btn-lg">Cancel</a>
+    </div>
+
+</form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/risk_form.js') }}"></script>
+<script>
+// Initialise on page load (for validation re-render)
+window.addEventListener('DOMContentLoaded', function() {
+    filterCategories();
+    calcScore();
+});
+</script>
+{% endblock %}

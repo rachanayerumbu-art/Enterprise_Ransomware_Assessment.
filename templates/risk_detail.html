@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ risk['risk_id'] }} – {{ risk['title'] }}{% endblock %}
+{% block page_title %}Risk Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ url_for('risk_register') }}">Risk Register</a> › {{ risk['risk_id'] }}
+    </div>
+    <div class="detail-header-row">
+        <div>
+            <h1 class="page-h1">{{ risk['title'] }}</h1>
+            <p class="page-sub">
+                <code>{{ risk['risk_id'] }}</code>
+                {% if risk['is_sample'] %}<span class="badge badge-sample">Sample Record</span>{% endif %}
+            </p>
+        </div>
+        <div class="detail-actions">
+            <a href="{{ url_for('edit_risk', risk_id=risk['risk_id']) }}" class="btn btn-secondary">✏️ Edit</a>
+            <form method="post" action="{{ url_for('delete_risk', risk_id=risk['risk_id']) }}" style="display:inline"
+                  onsubmit="return confirm('Permanently delete {{ risk['risk_id'] }}?')">
+                <button type="submit" class="btn btn-danger">🗑 Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Score Hero ===== -->
+<div class="score-hero">
+    <div class="score-hero-item">
+        <span class="score-hero-num">{{ risk['likelihood'] }}</span>
+        <span class="score-hero-label">Likelihood</span>
+    </div>
+    <div class="score-hero-operator">×</div>
+    <div class="score-hero-item">
+        <span class="score-hero-num">{{ risk['impact'] }}</span>
+        <span class="score-hero-label">Impact</span>
+    </div>
+    <div class="score-hero-operator">=</div>
+    <div class="score-hero-item score-hero-result">
+        <span class="score-hero-num hero-score-{{ risk['risk_level']|lower }}">{{ risk['risk_score'] }}</span>
+        <span class="score-hero-label">
+            <span class="badge {{ get_risk_badge_class(risk['risk_level']) }} badge-lg">
+                {{ risk['risk_level'] }} Risk
+            </span>
+        </span>
+    </div>
+</div>
+
+<!-- ===== Detail Grid ===== -->
+<div class="detail-grid">
+    <!-- Left Column -->
+    <div class="detail-col">
+        <div class="detail-card">
+            <h3 class="detail-card-title">📋 Risk Information</h3>
+            <dl class="detail-dl">
+                <dt>Description</dt>
+                <dd>{{ risk['description'] }}</dd>
+                <dt>Affected Asset</dt>
+                <dd>{{ risk['affected_asset'] }}</dd>
+                <dt>Threat Source</dt>
+                <dd>{{ risk['threat_source'] }}</dd>
+                <dt>Existing Controls</dt>
+                <dd>{{ risk['existing_controls'] or '—' }}</dd>
+            </dl>
+        </div>
+
+        <div class="detail-card">
+            <h3 class="detail-card-title">🛡️ Recommended Mitigation</h3>
+            <p class="detail-text">{{ risk['recommended_mitigation'] }}</p>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="detail-col">
+        <div class="detail-card">
+            <h3 class="detail-card-title">🗺️ NIST CSF 2.0 Mapping</h3>
+            <dl class="detail-dl">
+                <dt>Function</dt>
+                <dd>
+                    <span class="nist-function-badge nist-{{ risk['nist_function']|lower }}">
+                        {{ risk['nist_function'] }}
+                    </span>
+                </dd>
+                <dt>Category ID</dt>
+                <dd><code>{{ risk['nist_category_id'] }}</code></dd>
+                <dt>Category Name</dt>
+                <dd>{{ risk['nist_category'] }}</dd>
+                <dt>Mapping Explanation</dt>
+                <dd>{{ risk['nist_explanation'] or '—' }}</dd>
+            </dl>
+            <div class="nist-disclaimer">
+                ℹ️ NIST CSF 2.0 mappings are provided for planning purposes only.
+                Refer to the <a href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener">official NIST publication</a> for authoritative guidance.
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <h3 class="detail-card-title">📌 Tracking</h3>
+            <dl class="detail-dl">
+                <dt>Risk Owner</dt>
+                <dd>{{ risk['risk_owner'] }}</dd>
+                <dt>Status</dt>
+                <dd><span class="badge badge-status-{{ risk['status']|lower|replace(' ','-') }}">{{ risk['status'] }}</span></dd>
+                <dt>Target Date</dt>
+                <dd>{{ risk['target_date'] or '—' }}</dd>
+                <dt>Created</dt>
+                <dd>{{ risk['created_at'] }}</dd>
+                <dt>Last Updated</dt>
+                <dd>{{ risk['updated_at'] }}</dd>
+            </dl>
+
+            <!-- Quick status update -->
+            <form method="post" action="{{ url_for('update_status', risk_id=risk['risk_id']) }}" class="status-update-form">
+                <label class="form-label">Quick Status Update</label>
+                <div class="status-update-row">
+                    <select name="status" class="form-select">
+                        {% for st in ['Open','In Progress','Mitigated','Accepted','Closed'] %}
+                        <option value="{{ st }}" {% if risk['status'] == st %}selected{% endif %}>{{ st }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="detail-footer-actions">
+    <a href="{{ url_for('risk_register') }}" class="btn btn-outline">← Back to Register</a>
+    <a href="{{ url_for('edit_risk', risk_id=risk['risk_id']) }}" class="btn btn-secondary">✏️ Edit this Risk</a>
+</div>
+{% endblock %}

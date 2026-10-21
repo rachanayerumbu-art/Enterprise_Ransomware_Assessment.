@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}NIST CSF 2.0 Mapping – {{ APP_NAME }}{% endblock %}
+{% block page_title %}NIST CSF 2.0 Mapping{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-h1">NIST Cybersecurity Framework 2.0 Mapping</h1>
+    <p class="page-sub">How each risk in the register maps to NIST CSF 2.0 functions and categories</p>
+    <div class="disclaimer-banner">
+        ⚠️ <strong>Disclaimer:</strong> These mappings are illustrative and for planning purposes only.
+        They do not constitute compliance with the NIST Cybersecurity Framework.
+        Always consult the <a href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener">official NIST CSF 2.0 publication</a>.
+    </div>
+</div>
+
+<!-- ===== Framework Overview Cards ===== -->
+<div class="nist-functions-grid">
+    {% for fn in functions_list %}
+    <div class="nist-fn-card nist-fn-{{ fn.name|lower }}">
+        <div class="nist-fn-code">{{ fn.code }}</div>
+        <div class="nist-fn-name">{{ fn.name }}</div>
+        <div class="nist-fn-desc">{{ fn.description }}</div>
+        <div class="nist-fn-count">
+            {{ risks | selectattr('nist_function', 'equalto', fn.name) | list | length }} risk(s)
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ===== Mapping Table ===== -->
+<div class="section-card">
+    <h2 class="section-title">Risk-to-Framework Mapping Table</h2>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Risk ID</th>
+                    <th>Risk Title</th>
+                    <th>Level</th>
+                    <th>NIST Function</th>
+                    <th>Category ID</th>
+                    <th>Category Name</th>
+                    <th>Mapping Explanation</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in risks %}
+            <tr>
+                <td><code>{{ r['risk_id'] }}</code></td>
+                <td>
+                    <a href="{{ url_for('risk_detail', risk_id=r['risk_id']) }}" class="table-link">
+                        {{ r['title'] }}
+                    </a>
+                </td>
+                <td>
+                    <span class="badge {{ get_risk_badge_class(r['risk_level']) }}">{{ r['risk_level'] }}</span>
+                </td>
+                <td>
+                    <span class="nist-function-badge nist-{{ r['nist_function']|lower }}">
+                        {{ r['nist_function'] }}
+                    </span>
+                </td>
+                <td><code>{{ r['nist_category_id'] }}</code></td>
+                <td>{{ r['nist_category'] }}</td>
+                <td class="td-explain">{{ r['nist_explanation'] or '—' }}</td>
+                <td>
+                    <span class="badge badge-status-{{ r['status']|lower|replace(' ','-') }}">{{ r['status'] }}</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center muted">No risks in the register yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== Per-Function Category Breakdown ===== -->
+<h2 class="section-title mt-2">CSF 2.0 Categories in This Assessment</h2>
+<div class="nist-cat-grid">
+{% for fn in functions_list %}
+    {% set cats = categories_by_func[fn.code] %}
+    {% if cats %}
+    <div class="nist-cat-group nist-fn-{{ fn.name|lower }}">
+        <div class="nist-cat-group-header">{{ fn.code }} – {{ fn.name }}</div>
+        {% for cat in cats %}
+        <div class="nist-cat-item">
+            <span class="nist-cat-id"><code>{{ cat.id }}</code></span>
+            <span class="nist-cat-name">{{ cat.name }}</span>
+            <span class="nist-cat-desc">{{ cat.description }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endfor %}
+</div>
+{% endblock %}
