@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-The **Enterprise Ransomware  Assessment ** is a web application that helps security administrators:
+The Enterprise Ransomware  Assessment is a web application that helps security administrators:
 
 1. Identify common ransomware-related risks
 2. Assess their likelihood and impact
