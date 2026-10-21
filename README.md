@@ -257,51 +257,7 @@ This is a suggested walkthrough for demonstrating the application to a lecturer 
 8. **Reports** — navigate to Reports; show the executive summary and distribution charts; click Export CSV to download; click Print Report
 9. **Run Tests** — in the terminal: `python -m pytest tests/ -v`
 
----
 
-## Limitations and Future Enhancements
-
-### Current Limitations
-
-- No user authentication or role-based access control
-- No real-time threat intelligence integration
-- Risk scores are qualitative; they do not replace a full quantitative risk analysis
-- No email notifications or alerting on overdue risks
-- Single-user application (no multi-user collaboration)
-
-### Suggested Future Enhancements
-
-| Enhancement | Description |
-|-------------|-------------|
-| User authentication | Login system with admin and read-only roles |
-| Risk heat map | Interactive 5×5 matrix visualisation |
-| Threat intelligence feeds | Integration with MITRE ATT&CK for ransomware TTPs |
-| Automated reminders | Email alerts for risks approaching target dates |
-| Multi-tenant support | Support for multiple business units or organisations |
-| PDF export | Server-side PDF report generation using WeasyPrint |
-| API layer | RESTful API for integration with GRC platforms |
-| Import from CSV | Bulk import of risks from a spreadsheet |
-
----
-
-## Viva / Exam Explanation (Quick Reference)
-
-**Q: What does the application do?**  
-A: It helps an organisation identify ransomware risks, calculate a risk score (Likelihood × Impact), map each risk to the NIST CSF 2.0 framework, and track mitigation progress.
-
-**Q: How is the risk score calculated?**  
-A: `Risk Score = Likelihood (1–5) × Impact (1–5)`. A score of 1–4 is Low, 5–9 is Medium, 10–16 is High, and 17–25 is Critical.
-
-**Q: What is NIST CSF 2.0?**  
-A: The NIST Cybersecurity Framework 2.0 is a voluntary framework published by the US National Institute of Standards and Technology. It organises cybersecurity activities into six functions: Govern, Identify, Protect, Detect, Respond, and Recover.
-
-**Q: Is this actual ransomware?**  
-A: No. This is a defensive planning tool. It does not contain malware, does not encrypt files, and does not attack any systems.
-
-**Q: Where is the data stored?**  
-A: All data is stored in a local SQLite database file at `database/ransomware_risk.db`. No external server or cloud service is used.
-
-**Q: How do you run the tests?**  
 A: Activate the virtual environment and run `python -m pytest tests/ -v`.
 
 
