@@ -1,7 +1,7 @@
 """
 app.py
 Main Flask application for the
-Enterprise Ransomware Risk Assessment System.
+Enterprise Ransomware Assessment.
 
 Run with:
     python app.py
